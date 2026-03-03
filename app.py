@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect
 import os, json
 from werkzeug.utils import secure_filename
 
@@ -77,8 +77,11 @@ def generate():
 # ================= PORTFOLIO LINK =================
 @app.route("/portfolio/<name>")
 def portfolio(name):
-    with open("data.json") as f:
-        db = json.load(f)
+    try:
+        with open("data.json") as f:
+            db = json.load(f)
+    except:
+        return "No data found ❌"
 
     user = db.get(name)
     if not user:
@@ -87,6 +90,7 @@ def portfolio(name):
     return render_template("portfolio.html", **user)
 
 
-# ================= RUN =================
+# ================= RUN (Render Compatible) =================
 if __name__ == "__main__":
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 10000))
+    app.run(host="0.0.0.0", port=port)

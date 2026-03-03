@@ -7,15 +7,17 @@ app = Flask(__name__)
 UPLOAD_FOLDER = "static/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# create uploads folder if not exists
+# Create uploads folder if not exists
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-# ================= LOGIN =================
+# ================= HOME =================
 @app.route("/")
 def home():
     return render_template("login.html")
 
+
+# ================= LOGIN =================
 @app.route("/login", methods=["POST"])
 def login():
     email = request.form.get("email")
@@ -24,7 +26,7 @@ def login():
     if email == "avn_aids2@gmail.com" and password == "12345":
         return redirect("/form")
     else:
-        return "Wrong login bro ❌"
+        return "Wrong login ❌"
 
 
 # ================= FORM =================
@@ -38,13 +40,17 @@ def form():
 def generate():
     name = request.form.get("name")
 
+    if not name:
+        return "Name is required ❌"
+
     # ==== PHOTO UPLOAD ====
     photo_file = request.files.get("photo")
     filename = ""
 
     if photo_file and photo_file.filename != "":
         filename = secure_filename(photo_file.filename)
-        photo_file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
+        photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        photo_file.save(photo_path)
 
     # ==== USER DATA ====
     user = {
@@ -74,7 +80,7 @@ def generate():
     return redirect(f"/portfolio/{name}")
 
 
-# ================= PORTFOLIO LINK =================
+# ================= PORTFOLIO =================
 @app.route("/portfolio/<name>")
 def portfolio(name):
     try:
@@ -84,13 +90,15 @@ def portfolio(name):
         return "No data found ❌"
 
     user = db.get(name)
+
     if not user:
         return "User not found ❌"
 
     return render_template("portfolio.html", **user)
 
 
-# ================= RUN (Render Compatible) =================
+# ================= RUN FOR RENDER =================
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 10000))
     app.run(host="0.0.0.0", port=port)
+

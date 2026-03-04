@@ -7,17 +7,15 @@ app = Flask(__name__)
 UPLOAD_FOLDER = "static/uploads"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
-# Create uploads folder if not exists
 if not os.path.exists(UPLOAD_FOLDER):
     os.makedirs(UPLOAD_FOLDER)
 
-# ================= HOME =================
+# HOME
 @app.route("/")
 def home():
     return render_template("login.html")
 
-
-# ================= LOGIN =================
+# LOGIN
 @app.route("/login", methods=["POST"])
 def login():
     email = request.form.get("email")
@@ -28,31 +26,26 @@ def login():
     else:
         return "Wrong login ❌"
 
-
-# ================= FORM =================
+# FORM
 @app.route("/form")
 def form():
     return render_template("form.html")
 
-
-# ================= GENERATE =================
+# GENERATE PORTFOLIO
 @app.route("/generate", methods=["POST"])
 def generate():
     name = request.form.get("name")
 
     if not name:
-        return "Name is required ❌"
+        return "Name required"
 
-    # ==== PHOTO UPLOAD ====
     photo_file = request.files.get("photo")
     filename = ""
 
     if photo_file and photo_file.filename != "":
         filename = secure_filename(photo_file.filename)
-        photo_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        photo_file.save(photo_path)
+        photo_file.save(os.path.join(app.config["UPLOAD_FOLDER"], filename))
 
-    # ==== USER DATA ====
     user = {
         "name": name,
         "about": request.form.get("about"),
@@ -65,9 +58,8 @@ def generate():
         "linkedin": request.form.get("linkedin"),
     }
 
-    # ==== SAVE TO data.json ====
     try:
-        with open("data.json", "r") as f:
+        with open("data.json") as f:
             db = json.load(f)
     except:
         db = {}
@@ -79,26 +71,24 @@ def generate():
 
     return redirect(f"/portfolio/{name}")
 
-
-# ================= PORTFOLIO =================
+# PORTFOLIO PAGE
 @app.route("/portfolio/<name>")
 def portfolio(name):
+
     try:
         with open("data.json") as f:
             db = json.load(f)
     except:
-        return "No data found ❌"
+        return "No data"
 
     user = db.get(name)
 
     if not user:
-        return "User not found ❌"
+        return "User not found"
 
     return render_template("portfolio.html", **user)
 
 
-# ================= RUN FOR RENDER =================
+# IMPORTANT FOR RENDER
 if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 10000))
-    app.run(host="0.0.0.0", port=port)
-
+    app.run()
